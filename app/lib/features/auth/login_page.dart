@@ -33,10 +33,30 @@ class _LoginPageState extends State<LoginPage> {
         MaterialPageRoute(builder: (_) => const AppShell()),
       );
     } catch (e) {
-      setState(() => _error = '发生了一点问题，请检查网络后重试');
+      setState(() => _error = _friendlyError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  /// 把真实失败原因转成可读文案（PRD §46 错误处理）。
+  /// 网络层与业务层分开，便于定位（真机诊断用）。
+  String _friendlyError(Object e) {
+    if (e is AuthRetryableFetchException) {
+      return '网络不可用，请检查网络后重试';
+    }
+    if (e is AuthException) {
+      final msg = e.message;
+      if (msg.contains('rate limit') || msg.contains('Too many')) {
+        return '操作过于频繁，请稍后再试（$msg）';
+      }
+      // 其余服务端错误原样展示（邮箱格式、密码强度、账号已存在等）
+      return msg;
+    }
+    if (e is PostgrestException) {
+      return e.code == '429' ? '操作过于频繁，请稍后再试' : e.message;
+    }
+    return '发生了一点问题，请稍后再试';
   }
 
   @override
