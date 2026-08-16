@@ -14,7 +14,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.0'   # 已按本地实测通过版本修改，满足 sdk: ^3.13.0
+          flutter-version: '3.24.3'   # 按用户指定版本切换（注意：项目 sdk 约束 ^3.13.0，3.24.3 自带 Dart 3.5.4，pub get 可能失败）
           channel: 'stable'
 
       - name: Enable Desktop (optional, for clean cache)
