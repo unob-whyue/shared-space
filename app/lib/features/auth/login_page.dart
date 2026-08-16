@@ -21,7 +21,26 @@ class _LoginPageState extends State<LoginPage> {
 
   AuthRepository get _repo => AuthRepository(Supabase.instance.client);
 
-  Future<void> _run(Future<void> Function() action) async {
+  /// 客户端表单校验（PRD §47）。返回错误文案，null 表示通过。
+  /// 注意：空邮箱会触发服务端「匿名注册被禁」的误导性报错，必须先拦。
+  String? _validate({required bool isSignUp}) {
+    final email = _email.text.trim();
+    if (email.isEmpty) return '请输入邮箱';
+    if (!email.contains('@') || !email.contains('.')) return '邮箱格式不正确';
+    if (_password.text.isEmpty) return '请输入密码';
+    if (isSignUp && _password.text.length < 6) return '密码至少 6 位';
+    return null;
+  }
+
+  Future<void> _run(Future<void> Function() action,
+      {bool isSignUp = false}) async {
+    final validationError = _validate(isSignUp: isSignUp);
+    if (validationError != null) {
+      setState(() {
+        _error = validationError;
+      });
+      return;
+    }
     setState(() {
       _loading = true;
       _error = null;
@@ -106,19 +125,31 @@ class _LoginPageState extends State<LoginPage> {
                     FilledButton(
                       onPressed: _loading
                           ? null
-                          : () => _run(() => _repo.signIn(
-                              email: _email.text.trim(),
-                              password: _password.text)),
+                          : () => _run(
+                                () => _repo.signIn(
+                                    email: _email.text.trim(),
+                                    password: _password.text),
+                              ),
                       child: Text(_loading ? '处理中…' : '登录'),
                     ),
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: _loading
                           ? null
-                          : () => _run(() => _repo.signUp(
-                              email: _email.text.trim(),
-                              password: _password.text)),
+                          : () => _run(
+                                () => _repo.signUp(
+                                    email: _email.text.trim(),
+                                    password: _password.text),
+                                isSignUp: true,
+                              ),
                       child: Text(_loading ? '处理中…' : '注册新账号'),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      '新用户：在上方填写邮箱和密码后点击「注册新账号」',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: AppColors.textSecondary, fontSize: 12),
                     ),
                   ],
                 ),
