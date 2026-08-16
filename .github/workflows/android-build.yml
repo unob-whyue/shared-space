@@ -29,7 +29,12 @@ jobs:
         run: flutter pub get
 
       - name: Build Debug APK
-        run: flutter build apk --debug
+        # 注入连接参数（anon/publishable key 为公开客户端密钥，安全边界在 RLS；
+        # 如需覆盖，可在仓库 Variables 中设置 SUPABASE_URL / SUPABASE_ANON_KEY）
+        run: |
+          flutter build apk --debug \
+            --dart-define=SUPABASE_URL=${{ vars.SUPABASE_URL || 'https://kawhasuhnyevrmbollpk.supabase.co' }} \
+            --dart-define=SUPABASE_ANON_KEY=${{ vars.SUPABASE_ANON_KEY || 'sb_publishable_ACvP-FoJjPhEftJiAxYfDA_PVoO_9A7' }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
