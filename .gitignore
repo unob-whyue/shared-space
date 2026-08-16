@@ -1,0 +1,30 @@
+# 通用构建产物
+build/
+.dart_tool/
+*.log
+.DS_Store
+
+# Flutter / Dart
+app/.dart_tool/
+app/build/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/android/.gradle/
+app/android/local.properties
+app/ios/Pods/
+app/windows/flutter/ephemeral/
+
+# 敏感配置
+.env
+*.env
+!.env.example
+app/lib/core/env.dart
+
+# 本地编辑器
+.idea/
+.vscode/
+*.iml
+
+# Supabase CLI 临时产物
+supabase/.branches/
+supabase/.temp/
