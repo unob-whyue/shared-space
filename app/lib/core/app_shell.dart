@@ -4,14 +4,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../features/calendar/diary_calendar_page.dart';
 import '../features/diary/my_records_page.dart';
 import '../features/profile/profile_page.dart';
+import '../features/notification/notification_bell.dart';
 import '../features/space/space_detail_page.dart';
 import '../features/space/space_repository.dart';
 import '../features/space/spaces_page.dart';
 import 'app_tokens.dart';
 
 /// App 外壳：抽屉式侧边栏 + 当前空间（UI_SPEC.md §2）。
-/// V1 只显示：共享日记 / 我的记录 / 空间设置；当前空间显示在抽屉头部。
-/// 不显示书影音 / 全国地图 / 通知等未来入口，不建空间管理器。
+/// 页面入口：共享日记 / 我的记录 / 空间设置；右上角提供通知中心。
+/// 不显示书影音 / 全国地图等未来入口，不建空间管理器。
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -90,7 +91,13 @@ class _AppShellState extends State<AppShell> {
     final inviteCode = space['invite_code'] as String?;
 
     return Scaffold(
-      appBar: AppBar(title: Text(_titles[_pageIndex])),
+      appBar: AppBar(
+        title: Text(_titles[_pageIndex]),
+        actions: const [
+          NotificationBell(),
+          SizedBox(width: 8),
+        ],
+      ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,

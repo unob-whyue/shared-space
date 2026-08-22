@@ -59,6 +59,12 @@ void main() {
     expect(activity.counts[6][WeekActivity.bucketCount - 1], 1);
   });
 
+  test('WEEK-002 时间区间标签表达区间而不是单个刻度点', () {
+    expect(weekHourIntervalLabel(8), '08:00–09:00');
+    expect(weekHourIntervalLabel(22), '22:00–23:00');
+    expect(weekHourIntervalLabel(23), '23:00–24:00');
+  });
+
   test('缺失字段的行被忽略，不崩溃', () {
     final weekStart = DateTime(2026, 8, 10);
     final activity = calculateWeeklyActivity(

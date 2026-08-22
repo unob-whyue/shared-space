@@ -276,7 +276,7 @@ class _DiaryCalendarPageState extends State<DiaryCalendarPage> {
         ),
         Row(
           children: [
-            const SizedBox(width: 40),
+            const SizedBox(width: 62),
             ...activity.days.map((day) => Expanded(
                   child: Center(
                     child: Text(
@@ -294,11 +294,11 @@ class _DiaryCalendarPageState extends State<DiaryCalendarPage> {
           Row(
             children: [
               SizedBox(
-                width: 40,
+                width: 62,
                 child: Text(
-                  '${(WeekActivity.firstHour + hourIndex).toString().padLeft(2, '0')}:00',
+                  weekHourIntervalLabel(WeekActivity.firstHour + hourIndex),
                   style: const TextStyle(
-                      color: AppColors.textSecondary, fontSize: 10),
+                      color: AppColors.textSecondary, fontSize: 9),
                 ),
               ),
               ...List.generate(7, (dayIndex) {
@@ -325,6 +325,10 @@ class _DiaryCalendarPageState extends State<DiaryCalendarPage> {
                         height: 24,
                         decoration: BoxDecoration(
                           color: weekActivityColor(count),
+                          border: Border.all(
+                            color: AppColors.divider,
+                            width: 0.5,
+                          ),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),

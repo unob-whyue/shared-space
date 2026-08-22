@@ -105,31 +105,72 @@ class DiaryRepository {
       getByDateRange(spaceId, date, date);
 
   /// 一次获取区间数据（月视图 / 周视图用，不发 30 次请求）。
+  /// 分页拉取全部行，避免 PostgREST 默认 max-rows 截断导致日记悄悄丢失。
   Future<List<Map<String, dynamic>>> getByDateRange(
     String spaceId,
     DateTime from,
     DateTime to,
   ) async {
-    final rows = await _client
-        .from('diary_entries')
-        .select('*, profiles(nickname, color), diary_images(id)')
-        .eq('space_id', spaceId)
-        .gte('diary_date', formatDiaryDate(from))
-        .lte('diary_date', formatDiaryDate(to))
-        .order('created_at', ascending: true);
-    return rows;
+    return _fetchAll((start, end) async {
+      return await _client
+          .from('diary_entries')
+          .select('*, profiles(nickname, color), diary_images(id)')
+          .eq('space_id', spaceId)
+          .gte('diary_date', formatDiaryDate(from))
+          .lte('diary_date', formatDiaryDate(to))
+          .order('created_at', ascending: true)
+          .range(start, end);
+    });
+  }
+
+  /// 按 created_at 区间获取日记（周视图时间桶点击使用）。
+  /// 与 calculateWeeklyActivity 使用同一时间口径，避免与 diary_date 口径
+  /// 不一致造成部分日记在时间桶详情中不可见。
+  Future<List<Map<String, dynamic>>> getByCreatedAtRange(
+    String spaceId,
+    DateTime from,
+    DateTime to,
+  ) async {
+    return _fetchAll((start, end) async {
+      return await _client
+          .from('diary_entries')
+          .select('*, profiles(nickname, color), diary_images(id)')
+          .eq('space_id', spaceId)
+          .gte('created_at', from.toUtc().toIso8601String())
+          .lte('created_at', to.toUtc().toIso8601String())
+          .order('created_at', ascending: true)
+          .range(start, end);
+    });
   }
 
   /// 我的记录：同一 DiaryEntry 的个人视图，不是第二份数据。
   Future<List<Map<String, dynamic>>> getMyDiaries() async {
     final uid = _client.auth.currentUser?.id;
     if (uid == null) throw const AppError('未登录');
-    final rows = await _client
-        .from('diary_entries')
-        .select()
-        .eq('author_id', uid)
-        .order('diary_date', ascending: false);
-    return rows;
+    return _fetchAll((start, end) async {
+      return await _client
+          .from('diary_entries')
+          .select()
+          .eq('author_id', uid)
+          .order('diary_date', ascending: false)
+          .range(start, end);
+    });
+  }
+
+  static const int _pageSize = 1000;
+
+  Future<List<Map<String, dynamic>>> _fetchAll(
+    Future<List<Map<String, dynamic>>> Function(int start, int end) fetch,
+  ) async {
+    final all = <Map<String, dynamic>>[];
+    var start = 0;
+    while (true) {
+      final rows = await fetch(start, start + _pageSize - 1);
+      all.addAll(rows);
+      if (rows.length < _pageSize) break;
+      start += _pageSize;
+    }
+    return all;
   }
 
   /// 监听指定空间日记的实时变更（REALTIME）。

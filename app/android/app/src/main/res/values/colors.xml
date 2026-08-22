@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- V1.1 warm beige launch background (matches AppColors.background #FAF9F6) -->
+    <color name="launch_background">#FAF9F6</color>
+</resources>

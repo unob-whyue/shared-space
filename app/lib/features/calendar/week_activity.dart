@@ -20,8 +20,18 @@ class WeekActivity {
   /// 周一..周日（7 天）。
   final List<DateTime> days;
 
-  /// counts[dayIndex][hourIndex] = 不同成员数；hourIndex 0 ↔ 08:00。
+  /// counts[dayIndex][hourIndex] = 不同成员数；
+  /// hourIndex 0 ↔ 08:00–09:00，hourIndex 15 ↔ 23:00–24:00。
   final List<List<int>> counts;
+}
+
+/// 时间区间标签（V1.1 周视图问题 B）：
+/// 08:00–09:00、09:00–10:00 … 23:00–24:00。
+/// 网格表达的是「某一天 × 某一时间区间」，而不是单个时间刻度点。
+String weekHourIntervalLabel(int hour) {
+  final hh = hour.toString().padLeft(2, '0');
+  final next = (hour + 1).toString().padLeft(2, '0');
+  return '$hh:00–$next:00';
 }
 
 WeekActivity calculateWeeklyActivity(

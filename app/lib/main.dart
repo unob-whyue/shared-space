@@ -30,7 +30,8 @@ class SharedSpaceApp extends StatelessWidget {
   }
 }
 
-/// 启动页（UI_SPEC.md §3）：固定约 2 秒，不发网络请求、不等待后端。
+/// 启动页（V1.1）：品牌启动界面，约 3 秒后进入登录态门。
+/// 使用异步延时而非阻塞主线程；冷启动白屏由 Android 原生 LaunchTheme 兜底。
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
 
@@ -46,7 +47,7 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> _go() async {
-    await Future<void>.delayed(const Duration(seconds: 2));
+    await Future<void>.delayed(const Duration(milliseconds: 3000));
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const AuthGate()),
@@ -56,36 +57,39 @@ class _SplashPageState extends State<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
             const Expanded(
               child: Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 40),
-                  child: Text(
-                    '我想去盛满你所有野蛮的星球，\n庆祝文明不再扼住我们的喉咙。',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      height: 1.8,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
+                child: Image(
+                  image: AssetImage('assets/app_icon.png'),
+                  width: 128,
+                  height: 128,
+                  fit: BoxFit.contain,
                 ),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.only(bottom: 32),
-              child: Text(
-                '共享空间',
-                style: TextStyle(
-                  fontSize: 12,
-                  letterSpacing: 4,
-                  color: AppColors.textSecondary,
-                ),
+            const Text(
+              '共享空间',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 6,
+                color: AppColors.textPrimary,
               ),
             ),
+            const SizedBox(height: 8),
+            const Text(
+              '记录我们共同的生活',
+              style: TextStyle(
+                fontSize: 13,
+                letterSpacing: 2,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 48),
           ],
         ),
       ),

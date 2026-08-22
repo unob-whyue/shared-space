@@ -5,9 +5,10 @@ import '../../core/app_tokens.dart';
 import '../diary/diary_detail_page.dart';
 import '../diary/diary_repository.dart';
 import 'day_diaries_page.dart';
+import 'week_activity.dart';
 
 /// 周视图时间桶日记集合（UI_SPEC.md §9）：
-/// 该日期该小时（HH:00–HH:59）所有成员创建的日记，不按成员拆分。
+/// 该日期该时间区间（HH:00–HH+1:00）所有成员创建的日记，不按成员拆分。
 class HourDiariesPage extends StatefulWidget {
   const HourDiariesPage({
     super.key,
@@ -41,16 +42,20 @@ class _HourDiariesPageState extends State<HourDiariesPage> {
 
   Future<void> _load() async {
     try {
-      final rows = await _repo.getByDate(widget.spaceId, widget.date);
-      final filtered = rows.where((row) {
-        final createdAt = row['created_at'] as String?;
-        if (createdAt == null) return false;
-        return DateTime.parse(createdAt).toLocal().hour == widget.hour;
-      }).toList();
+      // 与周视图网格同口径：按 created_at 落入该时间区间。
+      // 不用 diary_date 过滤，避免周视图（created_at）与详情页（diary_date）
+      // 口径不一致导致部分日记“消失”。
+      final from = DateTime(
+          widget.date.year, widget.date.month, widget.date.day, widget.hour);
+      final to = from
+          .add(const Duration(hours: 1))
+          .subtract(const Duration(milliseconds: 1));
+      final rows = await _repo.getByCreatedAtRange(widget.spaceId, from, to);
       if (!mounted) return;
       setState(() {
-        _entries = filtered;
+        _entries = rows;
         _loading = false;
+        _error = null;
       });
     } catch (_) {
       if (!mounted) return;
@@ -63,10 +68,10 @@ class _HourDiariesPageState extends State<HourDiariesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final hh = widget.hour.toString().padLeft(2, '0');
+    final interval = weekHourIntervalLabel(widget.hour);
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.date.month}月${widget.date.day}日 $hh:00–$hh:59'),
+        title: Text('${widget.date.month}月${widget.date.day}日 $interval'),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())

@@ -11,6 +11,7 @@ import '../profile/color_keys.dart';
 import 'diary_editor_page.dart';
 import 'diary_enums.dart';
 import 'diary_image_repository.dart';
+import 'diary_photo_view_page.dart';
 import 'diary_repository.dart';
 
 /// 日记详情（UI_SPEC.md §14/§15）：
@@ -22,6 +23,7 @@ class DiaryDetailPage extends StatefulWidget {
     required this.diaryId,
     required this.spaceId,
     this.spaceName = '',
+    this.initialAnnotationId,
   });
 
   final String diaryId;
@@ -29,6 +31,9 @@ class DiaryDetailPage extends StatefulWidget {
 
   /// 可选（我的记录入口无空间名）。
   final String spaceName;
+
+  /// 通知跳转时传入：进入页面后定位到对应批注卡片。
+  final String? initialAnnotationId;
 
   @override
   State<DiaryDetailPage> createState() => _DiaryDetailPageState();
@@ -47,6 +52,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
 
   StreamSubscription<AnnotationChange>? _annoSub;
   int _annoGeneration = 0;
+  bool _didFocusInitialAnnotation = false;
 
   DiaryRepository get _repo => DiaryRepository(Supabase.instance.client);
   DiaryImageRepository get _imageRepo =>
@@ -114,6 +120,15 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
       final rows = await _annoRepo.getByDiary(widget.diaryId);
       if (!mounted || generation != _annoGeneration) return;
       setState(() => _annotations = rows);
+      final initialId = widget.initialAnnotationId;
+      if (!_didFocusInitialAnnotation &&
+          initialId != null &&
+          rows.any((a) => a['id'] == initialId)) {
+        _didFocusInitialAnnotation = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _onAnnotationTapped(initialId);
+        });
+      }
     } catch (_) {}
   }
 
@@ -498,10 +513,18 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                             mainAxisSpacing: 8,
                             crossAxisSpacing: 8,
                             children: _imageUrls
-                                .map((url) => ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(url,
-                                          fit: BoxFit.cover),
+                                .map((url) => GestureDetector(
+                                      onTap: () => Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              DiaryPhotoViewPage(imageUrl: url),
+                                        ),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(url,
+                                            fit: BoxFit.cover),
+                                      ),
                                     ))
                                 .toList(),
                           ),
