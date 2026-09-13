@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/app_config.dart';
+import 'core/app_kit.dart';
 import 'core/app_shell.dart';
 import 'core/app_tokens.dart';
 import 'features/auth/login_page.dart';
@@ -61,35 +62,34 @@ class _SplashPageState extends State<SplashPage> {
       body: SafeArea(
         child: Column(
           children: [
-            const Expanded(
-              child: Center(
-                child: Image(
-                  image: AssetImage('assets/app_icon.png'),
-                  width: 128,
-                  height: 128,
-                  fit: BoxFit.contain,
+            const Spacer(flex: 3),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                const SoftBlob(size: 196, color: AppColors.primarySoft),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(30),
+                  child: const Image(
+                    image: AssetImage('assets/app_icon.png'),
+                    width: 116,
+                    height: 116,
+                    fit: BoxFit.contain,
+                  ),
                 ),
-              ),
+              ],
             ),
-            const Text(
-              '共享空间',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 6,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 44),
+            Text('共享空间', style: serifStyle(size: 23, letterSpacing: 10)),
+            const SizedBox(height: 14),
             const Text(
               '记录我们共同的生活',
               style: TextStyle(
-                fontSize: 13,
-                letterSpacing: 2,
-                color: AppColors.textSecondary,
+                fontSize: 12,
+                letterSpacing: 3.2,
+                color: AppColors.textTertiary,
               ),
             ),
-            const SizedBox(height: 48),
+            const Spacer(flex: 4),
           ],
         ),
       ),

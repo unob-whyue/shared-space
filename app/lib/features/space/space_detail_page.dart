@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/app_kit.dart';
 import '../../core/app_tokens.dart';
-import '../profile/color_keys.dart';
 import 'space_repository.dart';
 
 /// 空间设置（V1：邀请码 + 成员列表）。
@@ -84,54 +84,70 @@ class _SpaceDetailPageState extends State<SpaceDetailPage> {
                   ),
                 )
               : ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(20, 22, 20, 40),
                   children: [
-                    Text(widget.spaceName,
-                        style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: 16),
+                    Text(widget.spaceName, style: serifStyle(size: 21)),
+                    const SizedBox(height: 22),
                     // 邀请码：其他成员靠它加入（PRD §7 用户友好凭证）
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.key_outlined),
-                        title: const Text('邀请码'),
-                        subtitle: Text(
-                          widget.spaceInviteCode ?? '',
-                          style: const TextStyle(
-                            letterSpacing: 2,
-                            fontWeight: FontWeight.w600,
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(18, 16, 10, 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border:
+                            Border.all(color: AppColors.border, width: 0.6),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  '邀请码',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    letterSpacing: 2.4,
+                                    color: AppColors.textTertiary,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  widget.spaceInviteCode ?? '',
+                                  style: serifStyle(
+                                      size: 20, letterSpacing: 4),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        trailing: IconButton(
-                          tooltip: '复制邀请码',
-                          icon: const Icon(Icons.copy_outlined, size: 20),
-                          onPressed: _copyInviteCode,
-                        ),
+                          IconButton(
+                            tooltip: '复制邀请码',
+                            icon: const Icon(Icons.copy_outlined, size: 20),
+                            color: AppColors.textTertiary,
+                            onPressed: _copyInviteCode,
+                          ),
+                        ],
                       ),
                     ),
-                    const Divider(height: 32),
-                    Text('成员（${_members.length}/10）',
-                        style: Theme.of(context).textTheme.titleSmall),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 30),
+                    SectionLabel(text: '成员 · ${_members.length}/10'),
                     Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                      spacing: 10,
+                      runSpacing: 10,
                       children: _members
                           .map((m) => Chip(
-                                avatar: CircleAvatar(
-                                    backgroundColor:
-                                        colorForKey(m['color'] as String? ?? 'blue'),
-                                    radius: 8),
+                                avatar: AuthorDot(
+                                  colorKey: m['color'] as String?,
+                                  size: 10,
+                                ),
                                 label: Text(m['nickname'] as String),
                               ))
                           .toList(),
                     ),
                     if (_members.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24),
-                        child: Center(
-                          child: Text('创建一个共享空间，和朋友开始记录吧。',
-                              style: TextStyle(color: AppColors.textSecondary)),
-                        ),
+                      const EmptyHint(
+                        text: '创建一个共享空间，和朋友开始记录吧。',
+                        padding: EdgeInsets.only(top: 28),
                       ),
                   ],
                 ),

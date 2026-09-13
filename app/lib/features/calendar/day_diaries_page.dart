@@ -3,18 +3,27 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/app_kit.dart';
 import '../../core/app_tokens.dart';
 import '../diary/diary_detail_page.dart';
 import '../diary/diary_enums.dart';
 import '../diary/diary_repository.dart';
-import '../profile/color_keys.dart';
 
 /// 日记列表条目（当日集合 / 时间段集合 / 我的记录共用）。
+/// 版式：时间 → 正文 → 天气 / 心情；不使用卡片边框与头像。
 class DiaryListItem extends StatelessWidget {
-  const DiaryListItem({super.key, required this.entry, required this.onTap});
+  const DiaryListItem({
+    super.key,
+    required this.entry,
+    required this.onTap,
+    this.showAuthor = true,
+  });
 
   final Map<String, dynamic> entry;
   final VoidCallback onTap;
+
+  /// 同一天可能有多个成员：显示作者色点 + 昵称（我的记录不需要）。
+  final bool showAuthor;
 
   static String formatHHmm(String? iso) {
     if (iso == null) return '';
@@ -26,24 +35,70 @@ class DiaryListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final profile = entry['profiles'] as Map<String, dynamic>? ?? const {};
     final rawColor = profile['color'];
-    final authorColor =
-        colorForKey(rawColor is String ? rawColor : 'blue');
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: CircleAvatar(radius: 5, backgroundColor: authorColor),
-        title: Text(
-          entry['content'] as String? ?? '',
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
+    final nickname = profile['nickname'] as String? ?? '未知';
+    final weather =
+        WeatherKeyX.fromStorage(entry['weather'] as String? ?? 'unknown');
+    final mood = MoodKeyX.fromStorage(entry['mood'] as String? ?? 'calm');
+
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                if (showAuthor) ...[
+                  AuthorDot(colorKey: rawColor is String ? rawColor : 'blue'),
+                  const SizedBox(width: 8),
+                  Text(
+                    nickname,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                ],
+                Text(
+                  formatHHmm(entry['created_at'] as String?),
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    letterSpacing: 1.2,
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+                const Spacer(),
+                const Icon(
+                  Icons.chevron_right,
+                  size: 16,
+                  color: AppColors.textTertiary,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              entry['content'] as String? ?? '',
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 15.5,
+                height: 1.8,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              '${weather.label} · ${mood.label}',
+              style: const TextStyle(
+                fontSize: 11.5,
+                letterSpacing: 0.8,
+                color: AppColors.textTertiary,
+              ),
+            ),
+          ],
         ),
-        subtitle: Text(
-          '${formatHHmm(entry['created_at'] as String?)} · '
-          '${profile['nickname'] ?? '未知'} · '
-          '${WeatherKeyX.fromStorage(entry['weather'] as String? ?? 'unknown').label} · '
-          '${MoodKeyX.fromStorage(entry['mood'] as String? ?? 'calm').label}',
-        ),
-        onTap: onTap,
       ),
     );
   }
@@ -100,8 +155,7 @@ class _DayDiariesPageState extends State<DayDiariesPage> {
   Future<void> _load() async {
     final generation = ++_fetchGeneration;
     try {
-      final rows =
-          await _repo.getByDate(widget.spaceId, widget.date);
+      final rows = await _repo.getByDate(widget.spaceId, widget.date);
       if (!mounted || generation != _fetchGeneration) return;
       setState(() {
         _entries = rows;
@@ -130,19 +184,17 @@ class _DayDiariesPageState extends State<DayDiariesPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(_error!),
+                      Text(_error!, style: Theme.of(context).textTheme.bodySmall),
                       TextButton(onPressed: _load, child: const Text('重试')),
                     ],
                   ),
                 )
               : _entries.isEmpty
-                  ? const Center(
-                      child: Text('这一天还没有留下记录。',
-                          style: TextStyle(color: AppColors.textSecondary)),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                  ? const EmptyHint(text: '这一天还没有留下记录。')
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
                       itemCount: _entries.length,
+                      separatorBuilder: (_, _) => const HairLine(),
                       itemBuilder: (context, index) {
                         final entry = _entries[index];
                         return DiaryListItem(

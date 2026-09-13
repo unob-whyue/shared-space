@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/app_error.dart';
+import '../../core/app_kit.dart';
 import '../profile/profile_page.dart';
 import '../profile/profile_rules.dart';
 import 'space_detail_page.dart';
@@ -192,9 +193,15 @@ class _SpacesPageState extends State<SpacesPage> {
                   ),
                 )
               : _spaces.isEmpty
-                  ? const Center(child: Text('创建一个共享空间，和朋友开始记录吧。'))
-                  : ListView.builder(
+                  ? const EmptyHint(
+                      text: '创建一个共享空间，和朋友开始记录吧。')
+                  : ListView.separated(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       itemCount: _spaces.length,
+                      separatorBuilder: (_, _) => const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: HairLine(),
+                      ),
                       itemBuilder: (context, index) {
                         final space = _spaces[index];
                         return ListTile(

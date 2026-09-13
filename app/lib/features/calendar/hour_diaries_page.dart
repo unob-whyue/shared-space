@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../core/app_tokens.dart';
+import '../../core/app_kit.dart';
 import '../diary/diary_detail_page.dart';
 import '../diary/diary_repository.dart';
 import 'day_diaries_page.dart';
@@ -43,8 +43,6 @@ class _HourDiariesPageState extends State<HourDiariesPage> {
   Future<void> _load() async {
     try {
       // 与周视图网格同口径：按 created_at 落入该时间区间。
-      // 不用 diary_date 过滤，避免周视图（created_at）与详情页（diary_date）
-      // 口径不一致导致部分日记“消失”。
       final from = DateTime(
           widget.date.year, widget.date.month, widget.date.day, widget.hour);
       final to = from
@@ -80,19 +78,18 @@ class _HourDiariesPageState extends State<HourDiariesPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(_error!),
+                      Text(_error!,
+                          style: Theme.of(context).textTheme.bodySmall),
                       TextButton(onPressed: _load, child: const Text('重试')),
                     ],
                   ),
                 )
               : _entries.isEmpty
-                  ? const Center(
-                      child: Text('这个时间段还没有留下记录。',
-                          style: TextStyle(color: AppColors.textSecondary)),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                  ? const EmptyHint(text: '这个时间段还没有留下记录。')
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
                       itemCount: _entries.length,
+                      separatorBuilder: (_, _) => const HairLine(),
                       itemBuilder: (context, index) {
                         final entry = _entries[index];
                         return DiaryListItem(

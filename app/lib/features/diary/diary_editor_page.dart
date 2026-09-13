@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/app_kit.dart';
 import '../../core/app_tokens.dart';
 import 'diary_enums.dart';
 import 'diary_image_repository.dart';
@@ -193,16 +194,27 @@ class _DiaryEditorPageState extends State<DiaryEditorPage> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(24, 22, 24, 40),
         children: [
           // 日期由系统确定，仅展示（V1 不提供修改）
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.calendar_today_outlined),
-            title: Text(
-              _isEdit && diaryDate != null ? '日期：$diaryDate' : '日期：今天',
-            ),
+          Row(
+            children: [
+              const Text(
+                '日期',
+                style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 2,
+                  color: AppColors.textTertiary,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Text(
+                _isEdit && diaryDate != null ? diaryDate : '今天',
+                style: serifStyle(size: 16),
+              ),
+            ],
           ),
+          const SizedBox(height: 18),
           Row(
             children: [
               Expanded(
@@ -232,20 +244,36 @@ class _DiaryEditorPageState extends State<DiaryEditorPage> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 26),
+          Container(height: 0.7, color: AppColors.divider),
+          const SizedBox(height: 4),
           TextField(
             controller: _content,
             autofocus: !_isEdit,
-            maxLines: 10,
+            minLines: 8,
+            maxLines: null,
+            keyboardType: TextInputType.multiline,
+            style: const TextStyle(
+              fontSize: 16,
+              height: 1.95,
+              letterSpacing: 0.2,
+              color: AppColors.textPrimary,
+            ),
             decoration: const InputDecoration(
               hintText: '写下今天的生活…',
-              border: OutlineInputBorder(),
+              filled: false,
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+              hintStyle:
+                  TextStyle(fontSize: 16, color: AppColors.textTertiary),
             ),
           ),
-          const SizedBox(height: 20),
-          Text('图片（$_totalImages/$kMaxDiaryImages）',
-              style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: 12),
+          const SizedBox(height: 4),
+          Container(height: 0.7, color: AppColors.divider),
+          const SizedBox(height: 30),
+          SectionLabel(text: '图片 · $_totalImages/$kMaxDiaryImages'),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -270,9 +298,10 @@ class _DiaryEditorPageState extends State<DiaryEditorPage> {
             ],
           ),
           if (_error != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Text(_error!,
-                style: const TextStyle(color: AppColors.error)),
+                style: const TextStyle(
+                    color: AppColors.error, fontSize: 13, height: 1.6)),
           ],
         ],
       ),
@@ -292,10 +321,10 @@ class _ImageTile extends StatelessWidget {
     return Stack(
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           child: url != null
-              ? Image.network(url!, width: 92, height: 92, fit: BoxFit.cover)
-              : Image.memory(bytes!, width: 92, height: 92, fit: BoxFit.cover),
+              ? Image.network(url!, width: 84, height: 84, fit: BoxFit.cover)
+              : Image.memory(bytes!, width: 84, height: 84, fit: BoxFit.cover),
         ),
         Positioned(
           top: 0,
@@ -326,11 +355,12 @@ class _AddImageTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 92,
-        height: 92,
+        width: 84,
+        height: 84,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.border),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border, width: 0.8),
         ),
         child: const Icon(Icons.add_photo_alternate_outlined,
             color: AppColors.textSecondary),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/app_kit.dart';
 import '../../core/app_tokens.dart';
 import '../diary/diary_detail_page.dart';
-import '../profile/color_keys.dart';
 import 'notification_repository.dart';
 
 /// App 内部通知中心（V1.1）：批注通知，按时间倒序，已读/未读有区分。
@@ -76,6 +76,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         : null;
     final annotationId = notification['annotation_id'] as String?;
 
+    if (!mounted) return;
     await Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => DiaryDetailPage(
         diaryId: diaryId,
@@ -108,10 +109,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
         : null;
     if (rawDate == null || rawDate.isEmpty) return '一篇日记';
     final parts = rawDate.split('-');
-    if (parts.length != 3) return '${rawDate}的日记';
+    if (parts.length != 3) return '$rawDate的日记';
     final month = int.tryParse(parts[1]) ?? parts[1];
     final day = int.tryParse(parts[2]) ?? parts[2];
-    return '${month}月${day}日的日记';
+    return '$month月$day日的日记';
   }
 
   void _toast(String message) {
@@ -146,13 +147,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   ),
                 )
               : _notifications.isEmpty
-                  ? const Center(
-                      child: Text('还没有通知。',
-                          style: TextStyle(color: AppColors.textSecondary)),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                  ? const EmptyHint(text: '还没有通知。')
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
                       itemCount: _notifications.length,
+                      separatorBuilder: (_, _) => const HairLine(),
                       itemBuilder: (context, index) {
                         final n = _notifications[index];
                         return _buildTile(n);
@@ -167,8 +166,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
         ? actor['nickname'] as String? ?? '未知'
         : '未知';
     final rawColor = actor is Map<String, dynamic> ? actor['color'] : null;
-    final authorColor =
-        colorForKey(rawColor is String ? rawColor : 'blue');
     final read = n['read_at'] != null;
 
     final annotation = n['annotation'];
@@ -182,29 +179,61 @@ class _NotificationsPageState extends State<NotificationsPage> {
       if (selectedText != null && selectedText.isNotEmpty) '「$selectedText」',
     ];
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      color: read ? AppColors.surface : AppColors.primarySoft,
-      child: ListTile(
-        leading: CircleAvatar(radius: 5, backgroundColor: authorColor),
-        title: Text(
-          title,
-          style: TextStyle(
-            fontWeight: read ? FontWeight.normal : FontWeight.w600,
-          ),
-        ),
-        subtitle: Text(subtitleParts.join(' · ')),
-        trailing: read
-            ? null
-            : Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
+    return InkWell(
+      onTap: () => _open(n),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 5),
+              child: AuthorDot(
+                colorKey: rawColor is String ? rawColor : 'blue',
+                size: 7,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      height: 1.6,
+                      fontWeight:
+                          read ? FontWeight.w400 : FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    subtitleParts.join(' · '),
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      letterSpacing: 0.6,
+                      color: AppColors.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (!read)
+              Padding(
+                padding: const EdgeInsets.only(top: 6, left: 10),
+                child: Container(
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
-        onTap: () => _open(n),
+          ],
+        ),
       ),
     );
   }

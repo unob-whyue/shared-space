@@ -127,11 +127,17 @@ class _ProfilePageState extends State<ProfilePage> {
               padding: const EdgeInsets.all(24),
               children: [
                 if (widget.setupMode) ...[
-                  const Text('先介绍一下自己吧'),
-                  const SizedBox(height: 4),
-                  Text('昵称和颜色会展示给同一空间的成员',
-                      style: Theme.of(context).textTheme.bodySmall),
-                  const SizedBox(height: 24),
+                  Text('先介绍一下自己吧', style: serifStyle(size: 19)),
+                  const SizedBox(height: 10),
+                  const Text(
+                    '昵称和颜色会展示给同一空间的成员',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      height: 1.7,
+                      color: AppColors.textTertiary,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
                 ],
                 TextField(
                   controller: _nickname,
@@ -159,8 +165,9 @@ class _ProfilePageState extends State<ProfilePage> {
                           shape: BoxShape.circle,
                           border: selected
                               ? Border.all(
-                                  color: AppColors.textPrimary, width: 3)
-                              : Border.all(color: AppColors.border),
+                                  color: AppColors.textPrimary, width: 1.6)
+                              : Border.all(
+                                  color: AppColors.border, width: 1),
                         ),
                         child: selected
                             ? const Icon(Icons.check,

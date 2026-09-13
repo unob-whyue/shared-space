@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/app_tokens.dart';
+
 /// 日记图片大图查看（V1.1 照片查看 Bug 修复）。
 /// 复用 Flutter 内置 InteractiveViewer：双指缩放 + 拖动；AppBar 返回原页面。
 /// 不改动图片上传 / 压缩 / 存储逻辑。
@@ -12,10 +14,19 @@ class DiaryPhotoViewPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.viewerBackground,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.viewerBackground,
+        surfaceTintColor: Colors.transparent,
+        foregroundColor: AppColors.viewerForeground,
+        elevation: 0,
+        titleTextStyle: const TextStyle(
+          fontFamily: kSerifFamily,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.6,
+          color: AppColors.viewerForeground,
+        ),
         title: Text(title ?? '照片'),
       ),
       body: Center(
@@ -28,13 +39,15 @@ class DiaryPhotoViewPage extends StatelessWidget {
             loadingBuilder: (context, child, progress) {
               if (progress == null) return child;
               return const Center(
-                child: CircularProgressIndicator(color: Colors.white),
+                child: CircularProgressIndicator(
+                  color: AppColors.viewerForeground,
+                ),
               );
             },
             errorBuilder: (context, error, stackTrace) => const Center(
               child: Text(
                 '图片加载失败',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: AppColors.viewerForeground),
               ),
             ),
           ),

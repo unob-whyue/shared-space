@@ -8,6 +8,7 @@ import '../features/notification/notification_bell.dart';
 import '../features/space/space_detail_page.dart';
 import '../features/space/space_repository.dart';
 import '../features/space/spaces_page.dart';
+import 'app_kit.dart';
 import 'app_tokens.dart';
 
 /// App 外壳：抽屉式侧边栏 + 当前空间（UI_SPEC.md §2）。
@@ -102,26 +103,35 @@ class _AppShellState extends State<AppShell> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(color: AppColors.primarySoft),
+            Container(
+              padding: const EdgeInsets.fromLTRB(24, 60, 24, 26),
+              decoration: const BoxDecoration(color: AppColors.surfaceMuted),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text(
-                    spaceName,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
+                  Text(spaceName, style: serifStyle(size: 20)),
+                  const SizedBox(height: 10),
                   const Text(
                     '当前空间',
-                    style: TextStyle(color: AppColors.textSecondary),
+                    style: TextStyle(
+                      fontSize: 11,
+                      letterSpacing: 2.4,
+                      color: AppColors.textTertiary,
+                    ),
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(24, 0, 24, 8),
+              child: Text(
+                '目录',
+                style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 3,
+                  color: AppColors.textTertiary,
+                ),
               ),
             ),
             ListTile(
@@ -142,7 +152,10 @@ class _AppShellState extends State<AppShell> {
               selected: _pageIndex == 2,
               onTap: () => _go(2),
             ),
-            const Divider(),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: HairLine(),
+            ),
             ListTile(
               leading: const Icon(Icons.swap_horiz_outlined),
               title: const Text('所有空间'),
@@ -167,6 +180,7 @@ class _AppShellState extends State<AppShell> {
                 Supabase.instance.client.auth.signOut();
               },
             ),
+            const SizedBox(height: 16),
           ],
         ),
       ),

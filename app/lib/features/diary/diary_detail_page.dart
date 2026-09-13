@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/app_kit.dart';
 import '../../core/app_tokens.dart';
 import '../annotation/annotation_repository.dart';
 import '../annotation/annotation_segments.dart';
@@ -285,7 +286,8 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
           TextSpan(
             style: const TextStyle(
               fontSize: 16,
-              height: 1.6,
+              height: 1.95,
+              letterSpacing: 0.2,
               color: AppColors.textPrimary,
             ),
             children: segments.map((seg) {
@@ -324,11 +326,15 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
         ),
         if (_selection != null)
           Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: Card(
+            padding: const EdgeInsets.only(top: 16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.primarySoft,
+                borderRadius: BorderRadius.circular(14),
+              ),
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                 child: Row(
                   children: [
                     const Icon(Icons.mode_comment_outlined,
@@ -363,66 +369,90 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
         final profile = ann['profiles'] as Map<String, dynamic>? ?? const {};
         final valid = annotationIsValid(content, ann);
         final colorKey = profile['color'];
+        final accent = colorForKey(colorKey is String ? colorKey : 'blue');
+        final active = _activeAnnotationId == ann['id'];
         final key = GlobalKey();
         _cardKeys[ann['id'] as String] = key;
-        return Card(
+        return Container(
           key: key,
-          color: _activeAnnotationId == ann['id']
-              ? AppColors.primarySoft
-              : null,
-          margin: const EdgeInsets.only(bottom: 8),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: active ? AppColors.primarySoft : AppColors.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border, width: 0.6),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 5,
-                      backgroundColor: colorForKey(
-                          colorKey is String ? colorKey : 'blue'),
+                Container(width: 3, color: accent.withValues(alpha: 0.7)),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            AuthorDot(
+                              colorKey: colorKey is String ? colorKey : 'blue',
+                              size: 6,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              profile['nickname'] as String? ?? '未知',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              _formatHHmm(ann['created_at'] as String?),
+                              style: const TextStyle(
+                                color: AppColors.textTertiary,
+                                fontSize: 11,
+                                letterSpacing: 0.6,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          '「${ann['selected_text']}」',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppColors.textTertiary,
+                            fontSize: 12.5,
+                            height: 1.6,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          ann['comment'] as String? ?? '',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            height: 1.75,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        if (!valid)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 6),
+                            child: Text(
+                              '原文已修改',
+                              style: TextStyle(
+                                color: AppColors.warning,
+                                fontSize: 11.5,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      profile['nickname'] as String? ?? '未知',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      _formatHHmm(ann['created_at'] as String?),
-                      style: const TextStyle(
-                          color: AppColors.textSecondary, fontSize: 12),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '「${ann['selected_text']}」',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  ann['comment'] as String? ?? '',
-                  style: const TextStyle(fontSize: 15, height: 1.5),
-                ),
-                if (!valid)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 4),
-                    child: Text(
-                      '原文已修改',
-                      style: TextStyle(
-                          color: AppColors.warning, fontSize: 12),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -438,8 +468,6 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
     final isMine = diary != null && diary['author_id'] == me;
     final profile = diary?['profiles'] as Map<String, dynamic>? ?? const {};
     final rawColor = profile['color'];
-    final authorColor =
-        colorForKey(rawColor is String ? rawColor : 'blue');
 
     return Scaffold(
       appBar: AppBar(
@@ -478,31 +506,39 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                       children: [
                         Row(
                           children: [
-                            CircleAvatar(
-                              radius: 10,
-                              backgroundColor: authorColor,
+                            AuthorDot(
+                              colorKey: rawColor is String ? rawColor : 'blue',
+                              size: 7,
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 10),
                             Text(
                               profile['nickname'] as String? ?? '未知',
-                              style: Theme.of(context).textTheme.titleMedium,
+                              style: serifStyle(size: 16),
                             ),
                             const Spacer(),
                             Text(
                               _formatCreatedAt(
                                   diary['created_at'] as String?),
-                              style: Theme.of(context).textTheme.bodySmall,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                letterSpacing: 0.6,
+                                color: AppColors.textTertiary,
+                              ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         Text(
                           '${WeatherKeyX.fromStorage(diary['weather'] as String? ?? 'unknown').label} · '
                           '${MoodKeyX.fromStorage(diary['mood'] as String? ?? 'calm').label} · '
                           '${diary['diary_date']}',
-                          style: Theme.of(context).textTheme.bodySmall,
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            letterSpacing: 0.8,
+                            color: AppColors.textTertiary,
+                          ),
                         ),
-                        const Divider(height: 24),
+                        const SizedBox(height: 26),
                         _buildContent(diary['content'] as String? ?? ''),
                         if (_imageUrls.isNotEmpty) ...[
                           const SizedBox(height: 16),
@@ -510,8 +546,8 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                             crossAxisCount: 3,
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 6,
+                            crossAxisSpacing: 6,
                             children: _imageUrls
                                 .map((url) => GestureDetector(
                                       onTap: () => Navigator.of(context).push(
@@ -521,7 +557,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                                         ),
                                       ),
                                       child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(12),
                                         child: Image.network(url,
                                             fit: BoxFit.cover),
                                       ),
@@ -530,10 +566,8 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                           ),
                         ],
                         if (_annotations.isNotEmpty) ...[
-                          const SizedBox(height: 24),
-                          Text('批注（${_annotations.length}）',
-                              style: Theme.of(context).textTheme.titleSmall),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 30),
+                          SectionLabel(text: '批注 · ${_annotations.length}'),
                           _buildAnnotationCards(
                               diary['content'] as String? ?? ''),
                         ],
